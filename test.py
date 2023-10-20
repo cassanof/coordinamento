@@ -10,9 +10,12 @@ args = parser.parse_args()
 
 node = node.Node(idx=args.idx, num_nodes=args.nodes)
 time.sleep(1)
+print('node {} is ready'.format(args.idx))
+node.sync_all()
 
 while True:
-    if random.random() < 0.1:
+    r = random.random()
+    if r < 0.1:
         print('| node {} is waiting'.format(args.idx))
         node.sync_all()
         print('+ node {} is done waiting'.format(args.idx))

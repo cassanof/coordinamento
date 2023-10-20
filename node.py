@@ -9,7 +9,6 @@ class Node:
         self.host = host
         self.idx = idx
         self.ctx = zmq.Context()
-        self.sub_chans: Dict[str, zmq.Socket] = {}
         self.num_nodes = num_nodes
         if self.idx == 0:
             self.pub_chan = self.ctx.socket(zmq.PUB)
@@ -19,16 +18,9 @@ class Node:
         else:
             self.sync_chan = self.ctx.socket(zmq.PUSH)
             self.sync_chan.connect(sync)
-
-    def _get_sub_chan(self, channel: str) -> zmq.Socket:
-        if channel not in self.sub_chans:
-            sub_chan = self.ctx.socket(zmq.SUB)
-            sub_chan.connect(self.host)
-            sub_chan.setsockopt_string(zmq.SUBSCRIBE, channel)
-            time.sleep(0.1)
-            self.sub_chans[channel] = sub_chan
-
-        return self.sub_chans[channel]
+            self.sub_chan = self.ctx.socket(zmq.SUB)
+            self.sub_chan.connect(self.host)
+            self.sub_chan.setsockopt_string(zmq.SUBSCRIBE, "")
 
     def sync_all(self):
         """
@@ -37,14 +29,9 @@ class Node:
         channel = "__sync__"
         if self.idx == 0:
             for _ in range(self.num_nodes - 1):
-                print('waiting for sync')
                 self.sync_chan.recv()
-            print('sending pub')
             self.pub_chan.send_string(channel)
         else:
             # subscribe before sending sync
-            sub_chan = self._get_sub_chan(channel)
-            print('sending sync')
             self.sync_chan.send(b'')
-            print('waiting for pub')
-            sub_chan.recv()
+            self.sub_chan.recv_string()
