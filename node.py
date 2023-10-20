@@ -30,12 +30,11 @@ class Node:
 
         return self.sub_chans[channel]
 
-    def sync_all(self, channel=""):
+    def sync_all(self):
         """
-        Waits for everyone to sync up. You can specify a channel to sync on,
-        or use the default channel.
+        Waits for everyone to sync up.
         """
-        channel = "__sync__{}".format(channel)
+        channel = "__sync__"
         if self.idx == 0:
             for _ in range(self.num_nodes - 1):
                 print('waiting for sync')
@@ -45,7 +44,6 @@ class Node:
         else:
             # subscribe before sending sync
             sub_chan = self._get_sub_chan(channel)
-            # recv and then wait 
             print('sending sync')
             self.sync_chan.send(b'')
             print('waiting for pub')
