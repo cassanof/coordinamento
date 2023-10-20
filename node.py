@@ -1,16 +1,15 @@
 import zmq
+import os
 from typing import List, Literal, Dict, Optional, Tuple
-
-Role = Literal["leader", "follower"]
 
 
 class Node:
-    def __init__(self, host="tcp://localhost:5555", role: Role = "follower"):
+    def __init__(self, host="tcp://localhost:5555", idx: int = 0):
         self.host = host
-        self.role = role
+        self.idx = idx
         self.ctx = zmq.Context()
         self.sub_chans: Dict[str, zmq.Socket] = {}
-        if self.role == "leader":
+        if self.idx == 0:
             self.pub_chan = self.ctx.socket(zmq.PUB)
             self.pub_chan.bind(self.host)
 
@@ -23,13 +22,17 @@ class Node:
 
         return self.sub_chans[channel]
 
-    def sync_all(self, channel="__sync__"):
+    def sync_all(self, channel=""):
         """
         Waits for everyone to sync up. You can specify a channel to sync on,
         or use the default channel.
         """
-        if self.role == "leader":
+        channel = "__sync__{}".format(channel)
+        if self.idx == 0:
             self.pub_chan.send_string(channel)
-        elif self.role == "follower":
+
+        elif self.idx > 0:
             sub_chan = self._get_sub_chan(channel)
             sub_chan.recv_string()
+
+    #  def fork(num: int):
