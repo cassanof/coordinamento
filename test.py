@@ -4,11 +4,12 @@ import random
 import node
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--role', type=str, default='follower')
 parser.add_argument('--idx', type=int, required=True)
+parser.add_argument('--nodes', type=int, required=True)
 args = parser.parse_args()
 
-node = node.Node(role=args.role)
+node = node.Node(idx=args.idx, num_nodes=args.nodes)
+time.sleep(1)
 
 while True:
     if random.random() < 0.1:
